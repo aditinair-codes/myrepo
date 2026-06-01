@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ app_name }}{% endblock %}</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', path='css/style.css') }}">
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <div class="app-container">
+        <!-- Top Navbar -->
+        <header class="navbar">
+            <div class="navbar-left">
+                <div class="logo-container">
+                    <!-- Brand Icon (Orange Play Icon) -->
+                    <div class="logo-icon">
+                        <svg viewBox="0 0 24 24" width="24" height="24" stroke="none" fill="currentColor">
+                            <polygon points="5 3 19 12 5 21 5 3" fill="#ff4d00"></polygon>
+                        </svg>
+                    </div>
+                    <span class="logo-brand">FirstStep.ai <span class="logo-accent">Designer</span></span>
+                </div>
+            </div>
+            
+            <div class="navbar-right">
+                <!-- AI Assistant Button -->
+                <button class="ai-assistant-btn">
+                    <span class="new-badge">NEW</span>
+                    <span>Try our AI Assistant</span>
+                </button>
+                
+                <!-- PRO Badge -->
+                <span class="pro-badge">PRO</span>
+                
+                <!-- Profile Avatar Button -->
+                <button class="icon-avatar-btn">
+                    <i data-lucide="user" class="avatar-icon"></i>
+                </button>
+                
+                <!-- Notification Bell Button -->
+                <button class="icon-bell-btn notification-active">
+                    <i data-lucide="bell" class="bell-icon"></i>
+                </button>
+            </div>
+        </header>
+
+        <div class="layout-body">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <nav class="sidebar-nav">
+                    <!-- ADMIN CATEGORY -->
+                    <div class="nav-section">
+                        <h3 class="nav-section-title">ADMIN</h3>
+                        <ul class="nav-list">
+                            <li>
+                                <a href="#" class="nav-link">
+                                    <i data-lucide="users" class="nav-icon"></i>
+                                    <span class="nav-text">Users</span>
+                                    <span class="nav-counter">18</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" class="nav-link">
+                                    <i data-lucide="play-circle" class="nav-icon"></i>
+                                    <span class="nav-text">Running Trainings</span>
+                                    <span class="nav-counter count-zero">0</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" class="nav-link">
+                                    <i data-lucide="cpu" class="nav-icon"></i>
+                                    <span class="nav-text">Running Simulations</span>
+                                    <span class="nav-counter">6</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" class="nav-link">
+                                    <i data-lucide="video" class="nav-icon"></i>
+                                    <span class="nav-text">Help Videos</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" class="nav-link">
+                                    <i data-lucide="key-round" class="nav-icon"></i>
+                                    <span class="nav-text">Device License</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" class="nav-link">
+                                    <i data-lucide="user-check" class="nav-icon"></i>
+                                    <span class="nav-text">User Activity</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" class="nav-link">
+                                    <i data-lucide="bar-chart-2" class="nav-icon"></i>
+                                    <span class="nav-text">Training Report</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- DASHBOARD CATEGORY -->
+                    <div class="nav-section">
+                        <div class="nav-section-header">
+                            <h3 class="nav-section-title">DASHBOARD</h3>
+                            <button class="add-shortcut-btn" id="openCreateModalShortcut" title="Create New Project">
+                                <i data-lucide="plus" class="shortcut-icon"></i>
+                            </button>
+                        </div>
+                        <ul class="nav-list">
+                            <li class="active-item-wrapper">
+                                <a href="/?status=active" class="nav-link {% if current_status == 'active' or current_status is not defined %}active{% endif %}">
+                                    <i data-lucide="folder" class="nav-icon"></i>
+                                    <span class="nav-text">All Projects</span>
+                                    <span class="nav-counter highlight-counter">{{ stats.active if stats else 1 }}</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </nav>
+            </aside>
+
+            <!-- Main Content Container -->
+            <main class="main-content">
+                <div class="content-wrapper">
+                    {% block content %}{% endblock %}
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <!-- Floating Help Button -->
+    <button class="floating-help-btn" title="Help Support">
+        <i data-lucide="help-circle"></i>
+    </button>
+    
+    <!-- Base JavaScript -->
+    <script>
+        // Initialize Lucide Icons
+        lucide.createIcons();
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

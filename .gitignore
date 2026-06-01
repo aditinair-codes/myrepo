@@ -1,0 +1,29 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+.vscode/
+.idea/
+# Byte-compiled / optimized / DLL files
+*.py[cod]
+*$py.class
+
+# Virtual Environments
+.venv/
+venv/
+env/
+
+# Python Environment Variables
+.env
+
+# FastAPI / Uvicorn
+*.log
+
+# Frontend / Static Assets
+/applications/frontend/static/dist/    # Compiled CSS/JS
+
+# IDEs and Tools
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

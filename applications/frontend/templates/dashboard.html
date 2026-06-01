@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard | {{ app_name }}{% endblock %}
+
+{% block content %}
+<!-- Welcome Banner Card -->
+<div class="welcome-banner" id="welcomeBanner">
+    <div class="banner-left">
+        <div class="folder-badge-container">
+            <i data-lucide="folder" class="folder-badge-icon"></i>
+        </div>
+        <div class="banner-text">
+            <h2 class="banner-text-title">Your Projects</h2>
+            <p class="banner-text-desc">Create and manage your Machine Learning and Computer Vision projects.</p>
+        </div>
+    </div>
+    <button class="banner-close-btn" onclick="document.getElementById('welcomeBanner').style.display='none'" title="Dismiss">
+        <i data-lucide="x" style="width: 14px; height: 14px;"></i>
+    </button>
+</div>
+
+<!-- Actions Toolbar -->
+<div class="actions-row">
+    <!-- Primary Create Button -->
+    <button class="btn-primary" id="openCreateModal">
+        <i data-lucide="plus" style="width: 16px; height: 16px; stroke-width: 2.5px;"></i>
+        <span>Create New Project</span>
+    </button>
+
+    <!-- Filters Tabs Pills -->
+    <div class="tabs-container">
+        <a href="/?status=active" class="tab-pill {% if current_status == 'active' %}active{% endif %}">
+            Current Projects ({{ stats.active }})
+        </a>
+        <a href="/?status=old" class="tab-pill {% if current_status == 'old' %}active{% endif %}">
+            Old Projects ({{ stats.old }})
+        </a>
+        <a href="/?status=trash" class="tab-pill {% if current_status == 'trash' %}active{% endif %}">
+            Trash ({{ stats.trash }})
+        </a>
+    </div>
+</div>
+
+<!-- Table Card container -->
+<div class="table-card">
+    <div class="table-wrapper">
+        <table class="projects-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th class="sortable">Project Name <span class="sort-icon"><i data-lucide="chevrons-up-down" style="width: 12px; height: 12px;"></i></span></th>
+                    <th class="sortable">Tag <span class="sort-icon"><i data-lucide="chevrons-up-down" style="width: 12px; height: 12px;"></i></span></th>
+                    <th>Dataset Preview</th>
+                    <th>Open Project</th>
+                    <th class="sortable">Project Type <span class="sort-icon"><i data-lucide="chevrons-up-down" style="width: 12px; height: 12px;"></i></span></th>
+                    <th class="sortable">Date Created <span class="sort-icon"><i data-lucide="chevrons-up-down" style="width: 12px; height: 12px;"></i></span></th>
+                    <th class="sortable">Accuracy <span class="sort-icon"><i data-lucide="chevrons-up-down" style="width: 12px; height: 12px;"></i></span></th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if projects %}
+                    {% for project in projects %}
+                        <tr>
+                            <!-- Row Number -->
+                            <td class="row-number">{{ loop.index }}</td>
+                            
+                            <!-- Project Name -->
+                            <td class="project-name-cell">{{ project.name }}</td>
+                            
+                            <!-- Tag selection dropdown -->
+                            <td>
+                                <div class="custom-select-wrapper">
+                                    <select class="tag-select" data-project-id="{{ project.id }}">
+                                        <option value="Select" {% if project.tag == 'Select' %}selected{% endif %}>Select</option>
+                                        <option value="Urgent" {% if project.tag == 'Urgent' %}selected{% endif %}>Urgent</option>
+                                        <option value="Review" {% if project.tag == 'Review' %}selected{% endif %}>Review</option>
+                                        <option value="Done" {% if project.tag == 'Done' %}selected{% endif %}>Done</option>
+                                    </select>
+                                    <i data-lucide="chevron-down" class="select-arrow"></i>
+                                </div>
+                            </td>
+                            
+                            <!-- Dataset Preview with overlay boxes -->
+                            <td>
+                                {% if project.dataset_preview %}
+                                    <div class="dataset-preview-container">
+                                        <div class="dataset-img-card placeholder-1">
+                                            <div class="bbox-overlay bbox-1"></div>
+                                        </div>
+                                        <div class="dataset-img-card placeholder-2">
+                                            <div class="bbox-overlay bbox-2"></div>
+                                        </div>
+                                        <div class="dataset-img-card placeholder-3">
+                                            <div class="bbox-overlay bbox-3"></div>
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <span class="no-preview">No Previews</span>
+                                {% endif %}
+                            </td>
+                            
+                            <!-- Open Project button -->
+                            <td>
+                                <a href="#" class="open-project-btn" title="Open {{ project.name }} workspace">
+                                    <i data-lucide="arrow-right" class="open-icon"></i>
+                                </a>
+                            </td>
+                            
+                            <!-- Project Type -->
+                            <td>{{ project.project_type }}</td>
+                            
+                            <!-- Date Created -->
+                            <td>{{ project.date_created }}</td>
+                            
+                            <!-- Accuracy Badge -->
+                            <td>
+                                <span class="accuracy-badge {% if project.accuracy >= 80 %}accuracy-high{% elif project.accuracy >= 60 %}accuracy-medium{% endif %}">
+                                    {% if project.accuracy > 0 %}{{ project.accuracy }}%{% else %}N/A{% endif %}
+                                </span>
+                            </td>
+                            
+                            <!-- Actions -->
+                            <td>
+                                <div class="action-buttons-group">
+                                    {% if current_status == 'trash' %}
+                                        <!-- Restore from trash button -->
+                                        <form action="/projects/{{ project.id }}/status" method="POST" style="display:inline;">
+                                            <input type="hidden" name="status" value="active">
+                                            <button type="submit" class="btn-action-circle btn-clone" title="Restore to Current">
+                                                <i data-lucide="rotate-ccw" class="action-btn-icon"></i>
+                                            </button>
+                                        </form>
+                                        <!-- Delete Permanently button -->
+                                        <form action="/projects/{{ project.id }}/delete" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to permanently delete this project? This cannot be undone.');">
+                                            <input type="hidden" name="current_status" value="trash">
+                                            <button type="submit" class="btn-action-circle btn-delete" title="Delete Permanently">
+                                                <i data-lucide="trash-2" class="action-btn-icon"></i>
+                                            </button>
+                                        </form>
+                                    {% else %}
+                                        <!-- Edit button -->
+                                        <button class="btn-action-circle btn-edit" title="Edit details" onclick="alert('Editing project \'{{ project.name }}\' details...')">
+                                            <i data-lucide="edit-3" class="action-btn-icon"></i>
+                                        </button>
+                                        
+                                        <!-- Clone button -->
+                                        <button class="btn-action-circle btn-clone" title="Clone project" data-project-name="{{ project.name }}">
+                                            <i data-lucide="copy" class="action-btn-icon"></i>
+                                        </button>
+                                        
+                                        <!-- Move to Trash button -->
+                                        <form action="/projects/{{ project.id }}/status" method="POST" style="display:inline;">
+                                            <input type="hidden" name="status" value="trash">
+                                            <button type="submit" class="btn-action-circle btn-delete" title="Move to Trash">
+                                                <i data-lucide="trash" class="action-btn-icon"></i>
+                                            </button>
+                                        </form>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                {% else %}
+                    <!-- Empty State -->
+                    <tr class="empty-state-row">
+                        <td colspan="9">
+                            <div class="empty-state-box">
+                                <i data-lucide="folder-open" class="empty-icon"></i>
+                                <h4 class="empty-title">No projects found</h4>
+                                <p>There are no projects in the <strong>{{ current_status }}</strong> section.</p>
+                            </div>
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Glassmorphism Create Project Modal -->
+<div class="modal-overlay" id="createProjectModal">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h3 class="modal-title">Create New Project</h3>
+            <button class="modal-close-btn" id="closeCreateModal" title="Close">
+                <i data-lucide="x" style="width: 18px; height: 18px;"></i>
+            </button>
+        </div>
+        <form action="/projects/create" method="POST" id="createProjectForm">
+            <div class="modal-body">
+                <!-- Project Name field -->
+                <div class="form-group">
+                    <label for="projectNameInput" class="form-label">Project Name</label>
+                    <input type="text" id="projectNameInput" name="name" required placeholder="e.g. crate_tracker_test" class="form-input">
+                </div>
+                
+                <!-- Project Type selection -->
+                <div class="form-group">
+                    <label for="projectTypeInput" class="form-label">Project Type</label>
+                    <select id="projectTypeInput" name="project_type" class="form-select">
+                        <option value="Object Detection">Object Detection</option>
+                        <option value="Classification">Classification</option>
+                        <option value="Segmentation">Segmentation</option>
+                    </select>
+                </div>
+                
+                <!-- Initial Tag selection -->
+                <div class="form-group">
+                    <label for="projectTagInput" class="form-label">Initial Tag</label>
+                    <select id="projectTagInput" name="tag" class="form-select">
+                        <option value="Select">Select</option>
+                        <option value="Urgent">Urgent</option>
+                        <option value="Review">Review</option>
+                        <option value="Done">Done</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" id="cancelCreateModal">Cancel</button>
+                <button type="submit" class="btn-primary">Create Project</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', path='js/main.js') }}"></script>
+{% endblock %}

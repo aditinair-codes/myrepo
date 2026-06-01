@@ -1,0 +1,7 @@
+{
+  "app_name": "FirstStep.ai Designer",
+  "host": "127.0.0.1",
+  "port": 8080,
+  "db_path": "applications/frontend/databases/projects.db",
+  "debug": true
+}
