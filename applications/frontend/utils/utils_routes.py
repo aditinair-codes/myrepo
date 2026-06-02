@@ -2,6 +2,7 @@ from fastapi import APIRouter, Request, Form, HTTPException, Depends
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 import os
+import random
 from . import utils
 
 router = APIRouter()
@@ -30,6 +31,10 @@ async def view_dashboard(request: Request, status: str = "active"):
     )
 
 
+@router.get("/projects/create", response_class=HTMLResponse)
+async def create_project_page(request: Request):
+
+    return RedirectResponse(url="/")
 
 @router.post("/projects/create")
 async def create_new_project(
@@ -83,3 +88,43 @@ async def delete_project(project_id: int, current_status: str = Form("trash")):
     if success:
         return RedirectResponse(url=f"/?status={current_status}", status_code=303)
     raise HTTPException(status_code=400, detail="Failed to delete project")
+
+@router.get("/projects/{project_id}", response_class=HTMLResponse)
+async def view_project_dataset(request: Request, project_id: int):
+    """View project dataset and workspace"""
+    utils.init_db()
+    
+    # Get project details
+    conn = utils.get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("SELECT * FROM projects WHERE id = %s", (project_id,))
+        project_row = cursor.fetchone()
+        if not project_row:
+            raise HTTPException(status_code=404, detail="Project not found")
+        project = dict(project_row) if hasattr(project_row, 'keys') else project_row
+    finally:
+        cursor.close()
+        conn.close()
+    
+    # Generate mock dataset images
+    dataset_images = []
+    for i in range(1, 9):
+        dataset_images.append({
+            "id": i,
+            "name": f"image_{i:04d}.jpg",
+            "date_added": "25 Apr 2024, 10:08 am",
+            "last_updated": "25 Apr 2024, 10:08 am",
+            "annotated": random.choice([True, False]),
+            "labels": "bottle, crate" if random.choice([True, False]) else ""
+        })
+    
+    return templates.TemplateResponse(
+        request=request,
+        name="dataset.html",
+        context={
+            "project": project,
+            "dataset_images": dataset_images,
+            "app_name": utils.config.get("app_name", "FirstStep.ai Designer")
+        }
+    )

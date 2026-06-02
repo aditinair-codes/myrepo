@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+
+{% block title %}Dataset | {{ project.name }} | {{ app_name }}{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', path='css/dataset.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<!-- Project Header -->
+<div class="project-header">
+    <div class="project-header-left">
+        <a href="/" class="back-button">
+            <i data-lucide="arrow-left"></i>
+            <span>Back to Projects</span>
+        </a>
+        <div class="project-info">
+            <h1 class="project-title">{{ project.name }}</h1>
+            <span class="project-type-badge">{{ project.project_type }}</span>
+        </div>
+    </div>
+    <div class="project-header-right">
+        <select class="project-selector" onchange="if(this.value) window.location.href='/projects/' + this.value">
+            <option value="">Switch Project</option>
+            <option value="{{ project.id }}" selected>{{ project.name }}</option>
+        </select>
+    </div>
+</div>
+
+<!-- Dataset Section -->
+<div class="dataset-container">
+    <div class="dataset-welcome">
+        <div class="dataset-welcome-icon">
+            <i data-lucide="image"></i>
+        </div>
+        <div class="dataset-welcome-text">
+            <h2 class="dataset-title">Your Dataset</h2>
+            <p class="dataset-desc">Upload and annotate your dataset for {{ project.project_type }}</p>
+        </div>
+        <button class="close-banner-btn" onclick="this.parentElement.style.display='none'">
+            <i data-lucide="x"></i>
+        </button>
+    </div>
+
+    <!-- Dataset Actions Toolbar -->
+    <div class="dataset-toolbar">
+        <button class="btn-action" id="addImagesBtn">
+            <i data-lucide="plus"></i>
+            <span>Add Images</span>
+        </button>
+        <div class="toolbar-spacer"></div>
+        <button class="btn-secondary">
+            <i data-lucide="search"></i>
+            <span>Dataset Analysis</span>
+        </button>
+        <button class="btn-secondary">
+            <i data-lucide="download"></i>
+            <span>Import</span>
+        </button>
+        <button class="btn-secondary">
+            <i data-lucide="upload"></i>
+            <span>Export</span>
+        </button>
+    </div>
+
+    <!-- Dataset Table -->
+    <div class="dataset-table-card">
+        <div class="table-wrapper">
+            <table class="dataset-table">
+                <thead>
+                    <tr>
+                        <th style="width: 50px;">#</th>
+                        <th style="width: 80px;">Thumbnail</th>
+                        <th>Image Name</th>
+                        <th>Date Added</th>
+                        <th>Last Updated</th>
+                        <th style="width: 100px;">Image Info</th>
+                        <th style="width: 90px;">Annotated</th>
+                        <th>Label(s)</th>
+                        <th style="width: 100px;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if dataset_images %}
+                        {% for image in dataset_images %}
+                            <tr>
+                                <td class="row-idx">{{ loop.index }}</td>
+                                
+                                <td>
+                                    <div class="thumbnail-cell">
+                                        <div class="thumbnail-placeholder"></div>
+                                    </div>
+                                </td>
+                                
+                                <td class="image-name-cell">
+                                    <span class="image-name">{{ image.name }}</span>
+                                </td>
+                                
+                                <td class="date-cell">{{ image.date_added }}</td>
+                                
+                                <td class="date-cell">{{ image.last_updated }}</td>
+                                
+                                <td>
+                                    <button class="info-btn" title="View image info">
+                                        <i data-lucide="info"></i>
+                                    </button>
+                                </td>
+                                
+                                <td>
+                                    <span class="badge-annotated {% if image.annotated %}annotated{% else %}not-annotated{% endif %}">
+                                        {% if image.annotated %}✓ YES{% else %}○ NO{% endif %}
+                                    </span>
+                                </td>
+                                
+                                <td>
+                                    <span class="labels-text">
+                                        {% if image.labels %}
+                                            {{ image.labels }}
+                                        {% else %}
+                                            <span class="no-labels">—</span>
+                                        {% endif %}
+                                    </span>
+                                </td>
+                                
+                                <td>
+                                    <button class="btn-annotate">
+                                        <i data-lucide="edit-2"></i>
+                                        <span>Annotate</span>
+                                    </button>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr class="empty-row">
+                            <td colspan="9">
+                                <div class="empty-dataset-state">
+                                    <i data-lucide="inbox"></i>
+                                    <h3>No images yet</h3>
+                                    <p>Upload images to your dataset to get started</p>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Upload Modal -->
+<div class="modal-overlay" id="uploadModal">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h3 class="modal-title">Add Images to Dataset</h3>
+            <button class="modal-close-btn" onclick="document.getElementById('uploadModal').classList.remove('active')">
+                <i data-lucide="x"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="upload-area" id="uploadArea">
+                <i data-lucide="upload-cloud"></i>
+                <h4>Drag and drop your images here</h4>
+                <p>or click to browse</p>
+                <input type="file" id="fileInput" multiple accept="image/*" style="display: none;">
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Upload button functionality
+    document.getElementById('addImagesBtn').addEventListener('click', () => {
+        document.getElementById('uploadModal').classList.add('active');
+    });
+    
+    // Close modal on overlay click
+    document.getElementById('uploadModal').addEventListener('click', (e) => {
+        if (e.target.id === 'uploadModal') {
+            document.getElementById('uploadModal').classList.remove('active');
+        }
+    });
+    
+    // Upload area drag and drop
+    const uploadArea = document.getElementById('uploadArea');
+    const fileInput = document.getElementById('fileInput');
+    
+    uploadArea.addEventListener('click', () => fileInput.click());
+    
+    uploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadArea.style.backgroundColor = 'var(--color-primary-lighter)';
+        uploadArea.style.borderColor = 'var(--color-primary)';
+    });
+    
+    uploadArea.addEventListener('dragleave', () => {
+        uploadArea.style.backgroundColor = '';
+        uploadArea.style.borderColor = '';
+    });
+    
+    uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadArea.style.backgroundColor = '';
+        uploadArea.style.borderColor = '';
+        
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            alert(`Selected ${files.length} file(s) for upload`);
+            // Here you would handle file upload
+        }
+    });
+    
+    // Annotate button functionality
+    document.querySelectorAll('.btn-annotate').forEach(btn => {
+        btn.addEventListener('click', () => {
+            alert('Annotation tool would open here');
+        });
+    });
+</script>
+
+{% endblock %}

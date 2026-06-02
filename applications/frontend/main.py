@@ -35,8 +35,12 @@ app.include_router(utils_routes.router)
 @app.on_event("startup")
 def startup_event():
     # Initialize the database
-    utils.init_db()
-    print("Database initialized successfully.")
+    try:
+        utils.init_db()
+        print("[SUCCESS] Database initialized successfully.")
+    except Exception as e:
+        print(f"[WARNING] Database connection failed: {e}")
+        print("[INFO] Server starting anyway - please check your PostgreSQL connection.")
 
 if __name__ == "__main__":
     host = config.get("host", "127.0.0.1")
