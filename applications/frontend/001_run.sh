@@ -4,22 +4,25 @@
 cd "$(dirname "$0")"
 
 GREEN='\033[0;32m'
+RED='\033[0;31m'
+BLUE='\033[0;34m'
 NC='\033[0m'
 
-echo -e "${GREEN}=======================================================================${NC}"
-echo -e "${GREEN}             Starting Local Frontend Server (Inside Context)           ${NC}"
-echo -e "${GREEN}=======================================================================${NC}"
+echo -e "${BLUE}=======================================================================${NC}"
+echo -e "${BLUE}             Starting Local Frontend Server (Inside Context)           ${NC}"
+echo -e "${BLUE}=======================================================================${NC}"
 echo ""
 
 # Check virtual environment
 if [ ! -d "venv" ]; then
-    echo -e "${GREEN}[INFO] No virtual environment found. Creating...${NC}"
-    python3 -m venv venv
-    source venv/bin/activate
-    python -m pip install --upgrade pip
-    python -m pip install -r ../../requirements.txt
-else
-    source venv/bin/activate
+    echo -e "${RED}[ERROR] Virtual environment not found!${NC}"
+    echo -e "${GREEN}[INFO] Please run ./setup_env.sh first to set up the environment.${NC}"
+    echo ""
+    exit 1
 fi
 
+# Activate virtual environment
+source venv/bin/activate
+
+echo -e "${GREEN}[INFO] Starting FastAPI server...${NC}"
 python main.py

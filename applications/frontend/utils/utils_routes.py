@@ -18,13 +18,18 @@ async def view_dashboard(request: Request, status: str = "active"):
     projects = utils.get_all_projects(status=status)
     stats = utils.get_project_stats()
     
-    return templates.TemplateResponse("dashboard.html", {
-        "request": request,
-        "projects": projects,
-        "stats": stats,
-        "current_status": status,
-        "app_name": utils.config.get("app_name", "FirstStep.ai Designer")
-    })
+    return templates.TemplateResponse(
+        request=request,
+        name="dashboard.html",
+        context={
+            "projects": projects,
+            "stats": stats,
+            "current_status": status,
+            "app_name": utils.config.get("app_name", "FirstStep.ai Designer")
+        }
+    )
+
+
 
 @router.post("/projects/create")
 async def create_new_project(

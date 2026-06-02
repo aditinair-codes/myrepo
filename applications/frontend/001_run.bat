@@ -10,15 +10,17 @@ cd %~dp0
 
 :: Check virtual environment
 if not exist "venv" (
-    echo [INFO] No virtual environment found at applications\frontend\venv. Creating...
-    python -m venv venv
-    call venv\Scripts\activate.bat
-    python -m pip install --upgrade pip
-    python -m pip install -r ..\..\requirements.txt
-) else (
-    call venv\Scripts\activate.bat
+    echo [ERROR] Virtual environment not found!
+    echo [INFO] Please run setup_env.bat first to set up the environment.
+    echo.
+    pause
+    exit /b 1
 )
 
+:: Activate virtual environment
+call venv\Scripts\activate.bat
+
 :: Run the script
+echo [INFO] Starting FastAPI server...
 python main.py
 pause
