@@ -128,3 +128,27 @@ async def view_project_dataset(request: Request, project_id: int):
             "app_name": utils.config.get("app_name", "FirstStep.ai Designer")
         }
     )
+
+@router.get("/db-viewer", response_class=HTMLResponse)
+async def view_database(request: Request, table: str = None):
+    """View database tables and data"""
+    utils.init_db()
+    
+    tables = utils.get_all_tables()
+    table_data = {"columns": [], "data": [], "row_count": 0}
+    selected_table = None
+    
+    if table and table in tables:
+        selected_table = table
+        table_data = utils.get_table_data(table)
+    
+    return templates.TemplateResponse(
+        request=request,
+        name="db_viewer.html",
+        context={
+            "tables": tables,
+            "selected_table": selected_table,
+            "table_data": table_data,
+            "app_name": utils.config.get("app_name", "FirstStep.ai Designer")
+        }
+    )

@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block title %}Database Viewer | {{ app_name }}{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', path='css/db_viewer.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<!-- Page Header -->
+<div class="db-header">
+    <div class="header-content">
+        <div class="header-left">
+            <i data-lucide="database" class="header-icon"></i>
+            <div class="header-text">
+                <h1 class="header-title">Database Viewer</h1>
+                <p class="header-desc">View and explore your database tables</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Database Container -->
+<div class="db-container">
+    <!-- Table Selector Card -->
+    <div class="selector-card">
+        <div class="selector-header">
+            <i data-lucide="table" class="selector-icon"></i>
+            <h2 class="selector-title">Select Table</h2>
+        </div>
+        
+        <div class="selector-body">
+            {% if tables %}
+                <div class="table-info">
+                    <span class="info-label">Available Tables:</span>
+                    <span class="info-badge">{{ tables|length }}</span>
+                </div>
+                
+                <form method="get" class="table-form">
+                    <div class="form-group">
+                        <label for="tableSelect" class="form-label">Choose Table</label>
+                        <select id="tableSelect" name="table" class="table-selector-input" onchange="this.form.submit()">
+                            <option value="">-- Select a table --</option>
+                            {% for table in tables %}
+                                <option value="{{ table }}" {% if table == selected_table %}selected{% endif %}>
+                                    {{ table }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </form>
+            {% else %}
+                <div class="no-tables-state">
+                    <i data-lucide="inbox"></i>
+                    <h3>No tables found</h3>
+                    <p>The database appears to be empty</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Table Data Display -->
+    {% if selected_table %}
+        <div class="data-card">
+            <div class="data-header">
+                <div class="data-header-left">
+                    <h2 class="data-title">{{ selected_table }}</h2>
+                    <span class="data-subtitle">Table data preview</span>
+                </div>
+                <div class="data-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">Rows:</span>
+                        <span class="stat-value">{{ table_data.row_count }}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Columns:</span>
+                        <span class="stat-value">{{ table_data.columns|length }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="data-body">
+                {% if table_data.error %}
+                    <div class="error-message">
+                        <i data-lucide="alert-circle"></i>
+                        <span>{{ table_data.error }}</span>
+                    </div>
+                {% elif table_data.data %}
+                    <div class="table-wrapper">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    {% for column in table_data.columns %}
+                                        <th>{{ column }}</th>
+                                    {% endfor %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for row in table_data.data %}
+                                    <tr>
+                                        {% for column in table_data.columns %}
+                                            <td class="cell-data" title="{{ row.get(column, 'NULL') }}">
+                                                <span class="cell-value">
+                                                    {% if row.get(column) is none %}
+                                                        <span class="null-value">NULL</span>
+                                                    {% else %}
+                                                        {{ row.get(column) }}
+                                                    {% endif %}
+                                                </span>
+                                            </td>
+                                        {% endfor %}
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="empty-table-state">
+                        <i data-lucide="inbox"></i>
+                        <h3>No data in table</h3>
+                        <p>The "{{ selected_table }}" table is empty</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    {% elif tables %}
+        <div class="placeholder-card">
+            <div class="placeholder-content">
+                <i data-lucide="arrow-right" class="placeholder-icon"></i>
+                <h3>Select a table to view</h3>
+                <p>Choose a table from the dropdown above to see its data</p>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+    // Initialize Lucide icons
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+</script>
+
+{% endblock %}

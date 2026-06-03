@@ -189,3 +189,57 @@ def delete_project_permanently(project_id):
     finally:
         cursor.close()
         conn.close()
+
+def get_all_tables():
+    """Get list of all table names in the database"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("""
+            SELECT table_name 
+            FROM information_schema.tables 
+            WHERE table_schema = 'public' 
+            ORDER BY table_name
+        """)
+        tables = [row[0] for row in cursor.fetchall()]
+        return tables
+    except Exception as e:
+        print(f"[ERROR] Failed to get tables: {e}")
+        return []
+    finally:
+        cursor.close()
+        conn.close()
+
+def get_table_data(table_name):
+    """Get all data from a specific table"""
+    conn = get_db_connection()
+    
+    try:
+        # Sanitize table name (basic protection)
+        if not table_name.replace('_', '').isalnum():
+            raise ValueError("Invalid table name")
+        
+        # Get column names using a regular cursor for information_schema
+        cursor_info = conn.cursor()
+        cursor_info.execute("""
+            SELECT column_name 
+            FROM information_schema.columns 
+            WHERE table_name = %s
+            ORDER BY ordinal_position
+        """, (table_name,))
+        columns = [row[0] for row in cursor_info.fetchall()]
+        cursor_info.close()
+        
+        # Get table data using RealDictCursor
+        cursor_data = conn.cursor(cursor_factory=RealDictCursor)
+        cursor_data.execute(f"SELECT * FROM {table_name}")
+        rows = cursor_data.fetchall()
+        data = [dict(row) for row in rows]
+        cursor_data.close()
+        
+        return {"columns": columns, "data": data, "row_count": len(data)}
+    except Exception as e:
+        print(f"[ERROR] Failed to get table data: {e}")
+        return {"columns": [], "data": [], "row_count": 0, "error": str(e)}
+    finally:
+        conn.close()
